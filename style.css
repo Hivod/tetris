@@ -5,7 +5,7 @@ html {
 body {
   font-family: 'Open Sans', sans-serif;
   font-size: 62.5%;
-  background: rgb(90, 85, 123);
+  background: rgb(71, 68, 93);
 }
 
 main {
@@ -16,5 +16,11 @@ canvas {
   border: 6px solid #393939;
   border-top: 0;
   display: block;
-  margin: 100px auto;
+  margin: 10px auto;
+}
+
+h1 {
+  font-size: 3em;
+  color: white;
+  text-align: center;
 }

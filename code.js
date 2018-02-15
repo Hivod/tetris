@@ -39,6 +39,8 @@ var player = {
   tetro: tetrominos[Math.floor(Math.random() * 7)]
 }
 
+var score = 0;
+
 function createMatrix(width, height) {
   var matrix = [];
   while (height--) {
@@ -142,9 +144,15 @@ function moveDown() {
   }
 }
 
+function clearLine(arr) {
+  for(var i = 0; i < arr.length; i++) {
+    if (arr[i] == 0) return false;
+  }
+  return true;
+}
 
 var dropCounter = 0;
-var dropInterval = 1000;
+var dropInterval = 800;
 
 var lastTime = 0;
 
@@ -155,6 +163,14 @@ function update(time = 0) {
   checkCollision(arena, player);
   if (dropCounter > dropInterval) {
     moveDown();
+  }
+  for(var i = 0; i < arena.length-1; i++) {
+    if(clearLine(arena[i])) {
+      arena.splice(i, 1);
+      arena.splice(0, 0, new Array(10).fill(0));
+      document.getElementById("score").innerHTML = "Score: " + ++score;
+      dropInterval -= 10;
+    }
   }
   drawFrame();
   requestAnimationFrame(update);
