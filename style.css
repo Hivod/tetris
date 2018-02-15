@@ -1,0 +1,20 @@
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 62.5%;
+  background: rgb(90, 85, 123);
+}
+
+main {
+  margin: 0 auto;
+}
+
+canvas {
+  border: 6px solid #393939;
+  border-top: 0;
+  display: block;
+  margin: 100px auto;
+}
