@@ -1,11 +1,12 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-ctx.scale(40, 40);
+const scale = 40;
+ctx.scale(scale, scale);
 ctx.fillStyle = "black"
-ctx.fillRect(0,0,canvas.width/40,canvas.height/40);
+ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
 
-function drawBlock(x,y, color) {
-  if(color == 1) { //red
+function drawBlock(x, y, color) {
+  if (color == 1) { //red
     c1 = "rgb(255, 0, 0)";
     c2 = "rgb(64, 0, 0)";
     c3 = "rgb(204, 0, 0)";
@@ -35,18 +36,18 @@ function drawBlock(x,y, color) {
     c3 = "rgb(102, 0, 204)";
   }
   ctx.fillStyle = c1;
-  ctx.fillRect(x,y,1,1)
-  ctx.scale(.2,.2);
+  ctx.fillRect(x, y, 1, 1)
+  ctx.scale(.2, .2);
   ctx.fillStyle = c2;
-  ctx.fillRect(x*5+4,y*5+1,1,4);
-  ctx.fillRect(x*5+1,y*5+4,4,1);
+  ctx.fillRect(x * 5 + 4, y * 5 + 1, 1, 4);
+  ctx.fillRect(x * 5 + 1, y * 5 + 4, 4, 1);
   ctx.fillStyle = "#fff";
-  ctx.fillRect(x*5,y*5,4,1);
-  ctx.fillRect(x*5,y*5,1,4);
+  ctx.fillRect(x * 5, y * 5, 4, 1);
+  ctx.fillRect(x * 5, y * 5, 1, 4);
   ctx.fillStyle = c3;
-  ctx.fillRect(x*5+4,y*5,1,1);
-  ctx.fillRect(x*5,y*5+4,1,1);
-  ctx.scale(5,5);
+  ctx.fillRect(x * 5 + 4, y * 5, 1, 1);
+  ctx.fillRect(x * 5, y * 5 + 4, 1, 1);
+  ctx.scale(5, 5);
 }
 
 const tetrominos = [
@@ -85,7 +86,7 @@ var player = {
   x: 4,
   y: 0,
   tetro: tetrominos[rand],
-  color: rand+1
+  color: rand + 1
 }
 
 var score = 0;
@@ -145,15 +146,16 @@ function move(direction) {
 document.body.addEventListener("keydown", function (key) {
   if (key.keyCode == 37) move(-1);
   if (key.keyCode == 39) move(1);
-  if(key.keyCode == 38) {
+  if (key.keyCode == 38) {
     player.tetro = rotate(player.tetro);
     if (checkCollision(arena, player)) {
-      for(var i = 0; i < 3; i++) {
+      for (var i = 0; i < 3; i++) {
         player.tetro = rotate(player.tetro);
       }
     }
   }
   if (key.keyCode == 40) moveDown();
+  if (key.keyCode == 32) sendDown();
 });
 
 var arena = createMatrix(10, 21);
@@ -189,12 +191,20 @@ function moveDown() {
     player.x = 4;
     rand = Math.floor(Math.random() * 7);
     player.tetro = tetrominos[rand];
-    player.color = rand+1;
+    player.color = rand + 1;
   }
 }
 
+function sendDown() {
+  while (!checkCollision(arena, player)) {
+    player.y++;
+    dropCounter = 1000;
+  }
+  player.y--;
+}
+
 function clearLine(arr) {
-  for(var i = 0; i < arr.length; i++) {
+  for (var i = 0; i < arr.length; i++) {
     if (arr[i] == 0) return false;
   }
   return true;
@@ -206,7 +216,7 @@ var dropInterval = 800;
 var lastTime = 0;
 
 function gameOver() {
-  for(var i = 0; i < arena[0].length; i++) {
+  for (var i = 0; i < arena[0].length; i++) {
     if (arena[0][i] != 0) return true;
   }
   return false;
@@ -227,8 +237,8 @@ function update(time = 0) {
   if (dropCounter > dropInterval) {
     moveDown();
   }
-  for(var i = 0; i < arena.length-1; i++) {
-    if(clearLine(arena[i])) {
+  for (var i = 0; i < arena.length - 1; i++) {
+    if (clearLine(arena[i])) {
       arena.splice(i, 1);
       arena.splice(0, 0, new Array(10).fill(0));
       document.getElementById("score").textContent = "SCORE: " + ++score;
@@ -236,7 +246,7 @@ function update(time = 0) {
     }
   }
   draw();
-  if(!gameOver()) {
+  if (!gameOver()) {
     requestAnimationFrame(update);
   } else {
     endGame();
