@@ -14,13 +14,28 @@ main {
 
 canvas {
   border: 6px solid #393939;
-  border-top: 0;
   display: block;
   margin: 10px auto;
 }
 
 h1 {
-  font-size: 3em;
+  margin: 0;
+  font-size: 4em;
+  font-weight: 100;
   color: white;
   text-align: center;
+  font-family: "Press Start 2P";
+  text-shadow: -4px 0 black, 0 4px black, 4px 0 black, 0 -4px black;
+}
+
+#gameovertext {
+  font-family: "Press Start 2P";
+  text-shadow: -4px 0 black, 0 4px black, 4px 0 black, 0 -4px black;
+  color: white;
+  text-align: center;
+  font-size: 4em;
+  position: absolute;
+  width: 100vw;
+  z-index: 1;
+  top: 40vh;
 }

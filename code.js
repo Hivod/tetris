@@ -1,6 +1,53 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-ctx.scale(20, 20);
+ctx.scale(40, 40);
+ctx.fillStyle = "black"
+ctx.fillRect(0,0,canvas.width/40,canvas.height/40);
+
+function drawBlock(x,y, color) {
+  if(color == 1) { //red
+    c1 = "rgb(255, 0, 0)";
+    c2 = "rgb(64, 0, 0)";
+    c3 = "rgb(204, 0, 0)";
+  } else if (color == 2) { //green
+    c1 = "rgb(0, 255, 0)";
+    c2 = "rgb(0, 64, 0)";
+    c3 = "rgb(0, 204, 0)";
+  } else if (color == 3) { //yellow
+    c1 = "rgb(255, 255, 0)";
+    c2 = "rgb(64, 64, 0)";
+    c3 = "rgb(204, 204, 0)";
+  } else if (color == 4) { //blue
+    c1 = "rgb(0, 0, 255)";
+    c2 = "rgb(0, 0, 64)";
+    c3 = "rgb(0, 0, 204)";
+  } else if (color == 5) { //pink
+    c1 = "rgb(255, 0, 255)";
+    c2 = "rgb(64, 0, 64)";
+    c3 = "rgb(204, 0, 204)";
+  } else if (color == 6) { //orange
+    c1 = "rgb(255, 127, 0)";
+    c2 = "rgb(64, 32, 0)";
+    c3 = "rgb(204, 102, 0)";
+  } else { //purple
+    c1 = "rgb(127, 0, 255)";
+    c2 = "rgb(32, 0, 64)";
+    c3 = "rgb(102, 0, 204)";
+  }
+  ctx.fillStyle = c1;
+  ctx.fillRect(x,y,1,1)
+  ctx.scale(.2,.2);
+  ctx.fillStyle = c2;
+  ctx.fillRect(x*5+4,y*5+1,1,4);
+  ctx.fillRect(x*5+1,y*5+4,4,1);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x*5,y*5,4,1);
+  ctx.fillRect(x*5,y*5,1,4);
+  ctx.fillStyle = c3;
+  ctx.fillRect(x*5+4,y*5,1,1);
+  ctx.fillRect(x*5,y*5+4,1,1);
+  ctx.scale(5,5);
+}
 
 const tetrominos = [
   //L tetro
@@ -8,35 +55,37 @@ const tetrominos = [
   [1, 0, 0],
   [0, 0, 0]],
   // J tetro
- [[1, 1, 1],
-  [0, 0, 1],
+ [[2, 2, 2],
+  [0, 0, 2],
   [0, 0, 0]],
   // T tetro
- [[1, 1, 1],
-  [0, 1, 0],
+ [[3, 3, 3],
+  [0, 3, 0],
   [0, 0, 0]],
   // S tetro
- [[0, 1, 1],
-  [1, 1, 0],
+ [[0, 4, 4],
+  [4, 4, 0],
   [0, 0, 0]],
   // Z tetro
- [[1, 1, 0],
-  [0, 1, 1],
+ [[5, 5, 0],
+  [0, 5, 5],
   [0, 0, 0]],
   // Line (I) tetro
- [[1, 1, 1, 1],
+ [[6, 6, 6, 6],
   [0, 0, 0, 0],
   [0, 0, 0, 0],
   [0, 0, 0, 0]],
   // Square (O) tetro
- [[1, 1],
-  [1, 1]]
+ [[7, 7],
+  [7, 7]]
 ];
 
+var rand = Math.floor(Math.random() * 7);
 var player = {
   x: 4,
   y: 0,
-  tetro: tetrominos[Math.floor(Math.random() * 7)]
+  tetro: tetrominos[rand],
+  color: rand+1
 }
 
 var score = 0;
@@ -50,25 +99,25 @@ function createMatrix(width, height) {
   return matrix;
 }
 
-function drawTetro(tetro, x, y) {
-  for (var row = 0; row < tetro.length; row++) {
-    for (var i = 0; i < tetro[row].length; i++) {
-      if (tetro[row][i] == 1) {
-        ctx.fillRect(i + x, row + y, 1, 1);
+function drawSprite(sprite, x, y) {
+  for (var row = 0; row < sprite.length; row++) {
+    for (var i = 0; i < sprite[row].length; i++) {
+      if (sprite[row][i] != 0) {
+        drawBlock(i + x, row + y, sprite[row][i]);
       }
     }
   }
 }
 
 
-function drawFrame() {
+function draw() {
   //ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "red";
-  drawTetro(player.tetro, player.x, player.y);
+  drawSprite(player.tetro, player.x, player.y);
   ctx.fillStyle = "blue";
-  drawTetro(arena, 0, 0);
+  drawSprite(arena, 0, 0);
 }
 
 /* controls (left + right) */
@@ -108,13 +157,12 @@ document.body.addEventListener("keydown", function (key) {
 });
 
 var arena = createMatrix(10, 21);
-console.table(arena);
 
 function placeTetro(arena, player) {
   for (var y = 0; y < player.tetro.length; y++) {
     for (var x = 0; x < player.tetro[y].length; x++) {
-      if (player.tetro[y][x] == 1) {
-        arena[player.y + y][player.x + x] = 1;
+      if (player.tetro[y][x] != 0) {
+        arena[player.y + y][player.x + x] = player.color;
       }
     }
   }
@@ -137,10 +185,11 @@ function moveDown() {
   if (checkCollision(arena, player)) {
     player.y--;
     placeTetro(arena, player);
-    console.table(arena);
     player.y = 0;
     player.x = 4;
-    player.tetro = tetrominos[Math.floor(Math.random() * 7)];
+    rand = Math.floor(Math.random() * 7);
+    player.tetro = tetrominos[rand];
+    player.color = rand+1;
   }
 }
 
@@ -156,6 +205,20 @@ var dropInterval = 800;
 
 var lastTime = 0;
 
+function gameOver() {
+  for(var i = 0; i < arena[0].length; i++) {
+    if (arena[0][i] != 0) return true;
+  }
+  return false;
+}
+
+function endGame() {
+  var gameOverText = document.createElement("p");
+  gameOverText.id = "gameovertext";
+  gameOverText.textContent = "GAME OVER";
+  document.getElementById("main").appendChild(gameOverText);
+}
+
 function update(time = 0) {
   var deltaTime = time - lastTime;
   lastTime = time;
@@ -168,12 +231,16 @@ function update(time = 0) {
     if(clearLine(arena[i])) {
       arena.splice(i, 1);
       arena.splice(0, 0, new Array(10).fill(0));
-      document.getElementById("score").innerHTML = "Score: " + ++score;
+      document.getElementById("score").textContent = "SCORE: " + ++score;
       dropInterval -= 10;
     }
   }
-  drawFrame();
-  requestAnimationFrame(update);
+  draw();
+  if(!gameOver()) {
+    requestAnimationFrame(update);
+  } else {
+    endGame();
+  }
 }
 
 update();
