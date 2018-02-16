@@ -35,19 +35,20 @@ function drawBlock(x, y, color) {
     c2 = "rgb(32, 0, 64)";
     c3 = "rgb(102, 0, 204)";
   }
+  var downScale = 8;
   ctx.fillStyle = c1;
   ctx.fillRect(x, y, 1, 1)
-  ctx.scale(.2, .2);
+  ctx.scale(1/downScale, 1/downScale);
   ctx.fillStyle = c2;
-  ctx.fillRect(x * 5 + 4, y * 5 + 1, 1, 4);
-  ctx.fillRect(x * 5 + 1, y * 5 + 4, 4, 1);
+  ctx.fillRect(x * downScale + downScale - 1, y * downScale + 1, 1, downScale - 1);
+  ctx.fillRect(x * downScale + 1, y * downScale + downScale - 1, downScale - 1, 1);
   ctx.fillStyle = "#fff";
-  ctx.fillRect(x * 5, y * 5, 4, 1);
-  ctx.fillRect(x * 5, y * 5, 1, 4);
+  ctx.fillRect(x * downScale, y * downScale, downScale - 1, 1);
+  ctx.fillRect(x * downScale, y * downScale, 1, downScale - 1);
   ctx.fillStyle = c3;
-  ctx.fillRect(x * 5 + 4, y * 5, 1, 1);
-  ctx.fillRect(x * 5, y * 5 + 4, 1, 1);
-  ctx.scale(5, 5);
+  ctx.fillRect(x * downScale + downScale - 1, y * downScale, 1, 1);
+  ctx.fillRect(x * downScale, y * downScale + downScale - 1, 1, 1);
+  ctx.scale(downScale, downScale);
 }
 
 const tetrominos = [
