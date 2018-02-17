@@ -1,51 +1,37 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const scale = 40;
+var downScale = 5;
 ctx.scale(scale, scale);
 ctx.fillStyle = "black"
 ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
 
 function drawBlock(x, y, color) {
   if (color == 1) { //red
-    c1 = "rgb(255, 0, 0)";
-    c2 = "rgb(64, 0, 0)";
-    c3 = "rgb(204, 0, 0)";
+    color = "rgb(255, 0, 0)";
   } else if (color == 2) { //green
-    c1 = "rgb(0, 255, 0)";
-    c2 = "rgb(0, 64, 0)";
-    c3 = "rgb(0, 204, 0)";
+    color = "rgb(0, 255, 0)";
   } else if (color == 3) { //yellow
-    c1 = "rgb(255, 255, 0)";
-    c2 = "rgb(64, 64, 0)";
-    c3 = "rgb(204, 204, 0)";
+    color = "rgb(255, 255, 0)";
   } else if (color == 4) { //blue
-    c1 = "rgb(0, 0, 255)";
-    c2 = "rgb(0, 0, 64)";
-    c3 = "rgb(0, 0, 204)";
+    color = "rgb(0, 0, 255)";
   } else if (color == 5) { //pink
-    c1 = "rgb(255, 0, 255)";
-    c2 = "rgb(64, 0, 64)";
-    c3 = "rgb(204, 0, 204)";
+    color = "rgb(255, 0, 255)";
   } else if (color == 6) { //orange
-    c1 = "rgb(255, 127, 0)";
-    c2 = "rgb(64, 32, 0)";
-    c3 = "rgb(204, 102, 0)";
+    color = "rgb(255, 127, 0)";
   } else { //purple
-    c1 = "rgb(127, 0, 255)";
-    c2 = "rgb(32, 0, 64)";
-    c3 = "rgb(102, 0, 204)";
+    color = "rgb(127, 0, 255)";
   }
-  var downScale = 8;
-  ctx.fillStyle = c1;
+  ctx.fillStyle = color;
   ctx.fillRect(x, y, 1, 1)
   ctx.scale(1/downScale, 1/downScale);
-  ctx.fillStyle = c2;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
   ctx.fillRect(x * downScale + downScale - 1, y * downScale + 1, 1, downScale - 1);
   ctx.fillRect(x * downScale + 1, y * downScale + downScale - 1, downScale - 1, 1);
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
   ctx.fillRect(x * downScale, y * downScale, downScale - 1, 1);
   ctx.fillRect(x * downScale, y * downScale, 1, downScale - 1);
-  ctx.fillStyle = c3;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
   ctx.fillRect(x * downScale + downScale - 1, y * downScale, 1, 1);
   ctx.fillRect(x * downScale, y * downScale + downScale - 1, 1, 1);
   ctx.scale(downScale, downScale);
