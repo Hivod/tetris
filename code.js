@@ -99,7 +99,6 @@ function drawSprite(sprite, x, y) {
 
 
 function draw() {
-  //ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "red";
@@ -108,7 +107,7 @@ function draw() {
   drawSprite(arena, 0, 0);
 }
 
-/* controls (left + right) */
+/* rotate current tetromino */
 function rotate() {
   var arr = new Array;
   for (var i = 0; i < player.tetro.length; i++) {
@@ -120,6 +119,10 @@ function rotate() {
     }
   }
   arr.reverse();
+  while (arr[0].every(function(val) {return val == 0})) {
+    arr.splice(0, 1);
+    arr.push(new Array(arr[0].length).fill(0));
+  }
   return arr;
 }
 
