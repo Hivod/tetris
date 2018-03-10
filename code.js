@@ -58,6 +58,8 @@ var player = {
   tetrominos: getRandomTetrominos(playerTetrominoArrayLength)
 };
 var downScale = 5;
+var style = 0; /* draw style for blocks (0 or 1) */
+var contrast = 1; /* contrast for shading on blocks (0-5) */
 var gameOverAnimation;
 
 function drawBlock(x, y, color, contrast) {
@@ -67,12 +69,12 @@ function drawBlock(x, y, color, contrast) {
   ctx.fillRect(x, y, 1, 1)
   ctx.scale(1 / downScale, 1 / downScale);
   ctx.fillStyle = "rgba(0, 0, 0, " + contrast / 2 + ")";
-  ctx.fillRect(x * downScale + downScale - 1, y * downScale + 1, 1, downScale - 1);
+  ctx.fillRect(x * downScale + downScale - 1, y * downScale + 1, 1, downScale - (1 + style));
   ctx.fillRect(x * downScale + 1, y * downScale + downScale - 1, downScale - 1, 1);
-  ctx.fillStyle = "rgba(255, 255, 255, " + contrast / 1.4286 + ")";
+  ctx.fillStyle = "rgba(255, 255, 255, " + contrast * (Math.abs(style-1)) / 1.4286 + ")";
   ctx.fillRect(x * downScale, y * downScale, downScale - 1, 1);
   ctx.fillRect(x * downScale, y * downScale, 1, downScale - 1);
-  ctx.fillStyle = "rgba(0, 0, 0, " + contrast / 5 + ")";
+  ctx.fillStyle = "rgba(0, 0, 0, " + (contrast + (style * 5000)) / 5 + ")";
   ctx.fillRect(x * downScale + downScale - 1, y * downScale, 1, 1);
   ctx.fillRect(x * downScale, y * downScale + downScale - 1, 1, 1);
   ctx.scale(downScale, downScale);
@@ -83,7 +85,7 @@ function drawMatrix(matrix, x, y) {
   for (var row = 0; row < matrix.length; row++) {
     for (var i = 0; i < matrix[row].length; i++) {
       if (matrix[row][i] != 0) {
-        drawBlock(i + x, row + y, matrix[row][i], 1);
+        drawBlock(i + x, row + y, matrix[row][i], contrast);
       }
     }
   }
@@ -138,7 +140,7 @@ function moveDown() {
   if (checkCollision(arena, player.tetrominos[0])) {
     player.y--;
     placeTetro(arena, player);
-    newTetro();
+    if (!gameOver()) newTetro();
   }
 }
 
