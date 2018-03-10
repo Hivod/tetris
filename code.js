@@ -1,42 +1,18 @@
-const canvas = document.getElementById("canvas");
+const canvas = document.getElementById("tetris");
 const ctx = canvas.getContext("2d");
-const scale = 40;
-var downScale = 5;
-ctx.scale(scale, scale);
-ctx.fillStyle = "black"
-ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
-
-function drawBlock(x, y, color) {
-  if (color == 1) { //red
-    color = "rgb(255, 0, 0)";
-  } else if (color == 2) { //green
-    color = "rgb(0, 255, 0)";
-  } else if (color == 3) { //yellow
-    color = "rgb(255, 255, 0)";
-  } else if (color == 4) { //blue
-    color = "rgb(0, 0, 255)";
-  } else if (color == 5) { //pink
-    color = "rgb(255, 0, 255)";
-  } else if (color == 6) { //orange
-    color = "rgb(255, 127, 0)";
-  } else { //purple
-    color = "rgb(127, 0, 255)";
-  }
-  ctx.fillStyle = color;
-  ctx.fillRect(x, y, 1, 1)
-  ctx.scale(1/downScale, 1/downScale);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-  ctx.fillRect(x * downScale + downScale - 1, y * downScale + 1, 1, downScale - 1);
-  ctx.fillRect(x * downScale + 1, y * downScale + downScale - 1, downScale - 1, 1);
-  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-  ctx.fillRect(x * downScale, y * downScale, downScale - 1, 1);
-  ctx.fillRect(x * downScale, y * downScale, 1, downScale - 1);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-  ctx.fillRect(x * downScale + downScale - 1, y * downScale, 1, 1);
-  ctx.fillRect(x * downScale, y * downScale + downScale - 1, 1, 1);
-  ctx.scale(downScale, downScale);
-}
-
+const scoreText = document.getElementById("scoretext");
+const screenText = document.getElementById("screentext");
+const screenText2 = document.getElementById("screentext2")
+const arenaSize = 10;
+ctx.scale(canvas.height / ((arenaSize * 2.1 | 0) | 0), canvas.width / arenaSize);
+const colors = ["rgb(14, 0, 88)", /* dark blue */
+                "rgb(255, 0, 0)", /* red, L tetro */
+                "rgb(0, 255, 0)", /* green, J tetro */
+                "rgb(255, 127, 0)", /* orange, T tetro */
+                "rgb(0, 0, 255)", /* blue, S tetro */
+                "rgb(255, 0, 255)", /* pink, Z tetro */
+                "rgb(255, 255, 0)", /* yellow, I tetro */
+                "rgb(127, 0, 255)"]; /* purple, O tetro */
 const tetrominos = [
   //L tetro
  [[1, 1, 1],
@@ -67,100 +43,127 @@ const tetrominos = [
  [[7, 7],
   [7, 7]]
 ];
+const playerTetrominoArrayLength = 5;
 
-var rand = Math.floor(Math.random() * 7);
+var startingSpeed = 800;
+var dropCounter = 0;
+var dropInterval = 0;
+var maxSpeed = 80;
+var lastTime = 0;
+var score = 0;
+var paused = false;
 var player = {
-  x: 4,
+  x: 0,
   y: 0,
-  tetro: tetrominos[rand],
-  color: rand + 1
+  tetrominos: getRandomTetrominos(playerTetrominoArrayLength)
+};
+var downScale = 5;
+var gameOverAnimation;
+
+function drawBlock(x, y, color, contrast) {
+  /* draw a stylized tetris block */
+  if (contrast in window) contrast = 1;
+  ctx.fillStyle = colors[color];
+  ctx.fillRect(x, y, 1, 1)
+  ctx.scale(1 / downScale, 1 / downScale);
+  ctx.fillStyle = "rgba(0, 0, 0, " + contrast / 2 + ")";
+  ctx.fillRect(x * downScale + downScale - 1, y * downScale + 1, 1, downScale - 1);
+  ctx.fillRect(x * downScale + 1, y * downScale + downScale - 1, downScale - 1, 1);
+  ctx.fillStyle = "rgba(255, 255, 255, " + contrast / 1.4286 + ")";
+  ctx.fillRect(x * downScale, y * downScale, downScale - 1, 1);
+  ctx.fillRect(x * downScale, y * downScale, 1, downScale - 1);
+  ctx.fillStyle = "rgba(0, 0, 0, " + contrast / 5 + ")";
+  ctx.fillRect(x * downScale + downScale - 1, y * downScale, 1, 1);
+  ctx.fillRect(x * downScale, y * downScale + downScale - 1, 1, 1);
+  ctx.scale(downScale, downScale);
 }
 
-var score = 0;
+function drawMatrix(matrix, x, y) {
+  /* draw a matrix using drawBlock() */
+  for (var row = 0; row < matrix.length; row++) {
+    for (var i = 0; i < matrix[row].length; i++) {
+      if (matrix[row][i] != 0) {
+        drawBlock(i + x, row + y, matrix[row][i], 1);
+      }
+    }
+  }
+}
 
 function createMatrix(width, height) {
   var matrix = [];
   while (height--) {
     matrix.push(new Array(width).fill(0));
   }
-  matrix.push(new Array(width).fill(1));
   return matrix;
 }
 
-function drawSprite(sprite, x, y) {
-  for (var row = 0; row < sprite.length; row++) {
-    for (var i = 0; i < sprite[row].length; i++) {
-      if (sprite[row][i] != 0) {
-        drawBlock(i + x, row + y, sprite[row][i]);
-      }
-    }
-  }
-}
+var arena = createMatrix(arenaSize, (arenaSize * 2.1 | 0)); /* set up arena */
+arena.push(new Array(arenaSize).fill(9));
+var gameLost = true; /* game won't start as soon as the page loads */
 
-
-function draw() {
-  //ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "red";
-  drawSprite(player.tetro, player.x, player.y);
-  ctx.fillStyle = "blue";
-  drawSprite(arena, 0, 0);
-}
-
-/* controls (left + right) */
-function rotate() {
-  var arr = new Array;
-  for (var i = 0; i < player.tetro.length; i++) {
-    arr.push([]);
-  }
-  for (var y = 0; y < player.tetro.length; y++) {
-    for (var x = 0; x < player.tetro[y].length; x++) {
-      arr[y].push(player.tetro[x][y]);
-    }
-  }
-  arr.reverse();
+function getRandomTetrominos(length) {
+  /* returns array of tetrominos of given length */
+  let arr = new Array(length).fill(0);
+  arr.forEach(function(element, index, arr) {
+    arr[index] = tetrominos[Math.floor(Math.random() * tetrominos.length)];
+  });
   return arr;
 }
 
+function rotate(tetromino) {
+  /* returns tetromino rotated 90 degrees counter clockwise */
+  var arr = new Array;
+  for (var i = 0; i < tetromino.length; i++) {
+    arr.push([]);
+  }
+  for (var y = 0; y < tetromino.length; y++) {
+    for (var x = 0; x < tetromino[y].length; x++) {
+      arr[y].push(tetromino[x][y]);
+    }
+  }
+  arr.reverse();
+  while (arr[0].every(function (val) {
+      return val == 0;
+    })) {
+    arr.splice(0, 1);
+    arr.push(new Array(arr[0].length).fill(0));
+  }
+  return arr;
+}
+
+function moveDown() {
+  /* moves player down unless there is a collision */
+  player.y++;
+  dropCounter = 0;
+  if (checkCollision(arena, player.tetrominos[0])) {
+    player.y--;
+    placeTetro(arena, player);
+    newTetro();
+  }
+}
+
+function sendDown() {
+  /* moves player as far down as possible instantly */
+  while (!checkCollision(arena, player.tetrominos[0])) {
+    player.y++;
+    dropCounter = dropInterval;
+  }
+  player.y--;
+}
+
 function move(direction) {
+  /* move player's tetromino left (direction = -1) or right (direction = 1) */
   player.x += direction;
-  if (checkCollision(arena, player)) {
+  if (checkCollision(arena, player.tetrominos[0])) {
     player.x -= direction;
   }
 }
 
-document.body.addEventListener("keydown", function (key) {
-  if (key.keyCode == 37) move(-1);
-  if (key.keyCode == 39) move(1);
-  if (key.keyCode == 38) {
-    player.tetro = rotate(player.tetro);
-    if (checkCollision(arena, player)) {
-      for (var i = 0; i < 3; i++) {
-        player.tetro = rotate(player.tetro);
-      }
-    }
-  }
-  if (key.keyCode == 40) moveDown();
-  if (key.keyCode == 32) sendDown();
-});
-
-var arena = createMatrix(10, 21);
-
-function placeTetro(arena, player) {
-  for (var y = 0; y < player.tetro.length; y++) {
-    for (var x = 0; x < player.tetro[y].length; x++) {
-      if (player.tetro[y][x] != 0) {
-        arena[player.y + y][player.x + x] = player.color;
-      }
-    }
-  }
-}
-
-function checkCollision(arena, player) {
-  for (var y = 0; y < player.tetro.length; y++) {
-    for (var x = 0; x < player.tetro[y].length; x++) {
-      if (player.tetro[y][x] != 0 && (arena[player.y + y] && arena[y + player.y][x + player.x] != 0)) {
+function checkCollision(matrix1, matrix2) {
+  /* returns true if matrix1 and matrix2 overlaps (at player's position) */
+  for (var y = 0; y < matrix2.length; y++) {
+    for (var x = 0; x < matrix2[y].length; x++) {
+      if (matrix2[y][x] != 0 && (matrix1[player.y + y] && matrix1[y + player.y][x + player.x] != 0)) {
         return true;
       }
     }
@@ -168,76 +171,176 @@ function checkCollision(arena, player) {
   return false;
 }
 
-function moveDown() {
-  player.y++;
-  dropCounter = 0;
-  if (checkCollision(arena, player)) {
-    player.y--;
-    placeTetro(arena, player);
-    player.y = 0;
-    player.x = 4;
-    rand = Math.floor(Math.random() * 7);
-    player.tetro = tetrominos[rand];
-    player.color = rand + 1;
+function placeTetro(arena, player) {
+  /* adds player's tetromino to arena at player's current position */
+  var color;
+  player.tetrominos[0][0].forEach(function(element) {
+    if (element != 0) color = element;
+  })
+  for (var y = 0; y < player.tetrominos[0].length; y++) {
+    for (var x = 0; x < player.tetrominos[0][y].length; x++) {
+      if (player.tetrominos[0][y][x] != 0) {
+        try {
+          arena[player.y + y][player.x + x] = color;
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    }
   }
 }
 
-function sendDown() {
-  while (!checkCollision(arena, player)) {
-    player.y++;
-    dropCounter = 1000;
-  }
-  player.y--;
+function newTetro() {
+  /* removes player's current tetromino, gives player a new tetromino, and resets position */
+  player.tetrominos.splice(0, 1);
+  player.tetrominos.push(getRandomTetrominos(1)[0]);
+  player.x = Math.floor(arena[0].length / 2) - Math.floor(player.tetrominos[0][0].length / 2);
+  player.y = 0;
 }
 
-function clearLine(arr) {
+function rowFull(arr) {
   for (var i = 0; i < arr.length; i++) {
     if (arr[i] == 0) return false;
   }
   return true;
 }
 
-var dropCounter = 0;
-var dropInterval = 800;
-
-var lastTime = 0;
+function clearRows(arena) {
+  /* clears any full rows and returns amount of cleared rows */
+  var rows = 0;
+  arena.forEach(function(element, index) {
+    if (rowFull(element) && element[0] != 9) {
+      arena.splice(index, 1);
+      arena.splice(0, 0, new Array(arenaSize).fill(0));
+      rows++;
+    }
+  });
+  return rows;
+}
 
 function gameOver() {
+  /* return true if blocks are touching top of arena */
   for (var i = 0; i < arena[0].length; i++) {
-    if (arena[0][i] != 0) return true;
+    if (arena[0][i] != 0) {
+      return true;
+    }
   }
   return false;
 }
 
+function startGame() {
+  gameLost = false;
+  arena = createMatrix(10, 21); /* reset arena */
+  arena.push(new Array(arenaSize).fill(9));
+  player.tetrominos = getRandomTetrominos(playerTetrominoArrayLength); /* reset player's tetromino array */
+  player.x = Math.floor(arena[0].length / 2) - Math.floor(player.tetrominos[0][0].length / 2);
+  player.y = 0;
+  dropInterval = startingSpeed;
+  //blockAmount -= 4;
+  clearInterval(gameOverAnimation);
+  score = 0;
+  update();
+}
+
 function endGame() {
-  var gameOverText = document.createElement("p");
-  gameOverText.id = "gameovertext";
-  gameOverText.textContent = "GAME OVER";
-  document.getElementById("main").appendChild(gameOverText);
+  screenText.textContent = "GAME OVER";
+  screenText2.textContent = "SCORE: " + score;
+  setTimeout(function () {
+    screenText.textContent = "PRESS SPACE TO START";
+  }, 5000);
+  var index = 0;
+  gameOverAnimation = setInterval(function () {
+    if (index < arena.length * arena[0].length) {
+      let x = index % arena[0].length;
+      let y = (index - x) / arena[0].length;
+      if (arena[y][x] != 0) {
+        drawBlock(x, y, 0, 1.2);
+      }
+      index++;
+    } else {
+      clearInterval(gameOverAnimation);
+    }
+  }, 30);
 }
 
 function update(time = 0) {
-  var deltaTime = time - lastTime;
-  lastTime = time;
-  dropCounter += deltaTime;
-  checkCollision(arena, player);
-  if (dropCounter > dropInterval) {
-    moveDown();
-  }
-  for (var i = 0; i < arena.length - 1; i++) {
-    if (clearLine(arena[i])) {
-      arena.splice(i, 1);
-      arena.splice(0, 0, new Array(10).fill(0));
-      document.getElementById("score").textContent = "SCORE: " + ++score;
-      dropInterval -= 10;
+  gameLost = gameOver();
+  if (!paused) {
+    var deltaTime = time - lastTime;
+    lastTime = time;
+    dropCounter += deltaTime;
+    if (dropCounter > dropInterval) {
+      moveDown();
     }
+    let clearedRows = clearRows(arena);
+    score += clearedRows;
+    dropInterval -= 20 * clearedRows;
+    if (dropInterval < maxSpeed) dropInterval = maxSpeed;
+    clearedRows = 0;
+    scoreText.textContent = score;
+    screenText.textContent = "";
+    screenText2.textContent = "";
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.height / ((arenaSize * 2.1 | 0) | 0), canvas.width / arenaSize);
+    drawMatrix(arena, 0, 0);
+    drawMatrix(player.tetrominos[0], player.x, player.y);
+  } else {
+    screenText.textContent = "PAUSED";
+    screenText2.textContent = "PRESS SPACE TO RESUME";
   }
-  draw();
-  if (!gameOver()) {
+  if (!gameLost) {
     requestAnimationFrame(update);
   } else {
     endGame();
   }
 }
 
-update();
+document.addEventListener("keydown", function (key) {
+  if (gameLost && key.keyCode == 32) {
+    startGame();
+  } else if (key.keyCode == 32) {
+    paused = false;
+  }
+});
+
+document.body.addEventListener("click", function (e) {
+  if (!gameLost && !paused) {
+    paused = true;
+  }
+});
+
+document.body.addEventListener("keydown", function (key) {
+  /* key listener for controls */
+  if (!paused) {
+    if (key.keyCode == 37) move(-1);
+    if (key.keyCode == 39) move(1);
+    if (key.keyCode == 38) {
+      player.tetrominos[0] = rotate(player.tetrominos[0]);
+      if (checkCollision(arena, player.tetrominos[0])) {
+        for (var i = 0; i < 3; i++) {
+          player.tetrominos[0] = rotate(player.tetrominos[0]);
+        }
+      }
+    }
+    if (key.keyCode == 40) moveDown();
+    if (key.keyCode == 32) sendDown();
+  }
+});
+
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.height / ((arenaSize * 2.1 | 0) | 0), canvas.width / arenaSize);
+
+function randomColor() {
+  var val = 255 + 64;
+  var red = Math.floor(Math.random() * 255);
+  val -= red;
+  if (val > 255) {
+    var green = Math.floor(Math.random() * 255);
+    val -= green;
+  } else {
+    var green = Math.floor(Math.random() * val);
+    val -= green;
+  }
+  var blue = val;
+  return "rgb(" + red + "," + green + "," + blue + ")";
+}
