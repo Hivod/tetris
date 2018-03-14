@@ -311,6 +311,10 @@ document.body.addEventListener("click", function (e) {
   }
 });
 
+window.onblur = function() {
+  paused = true;
+}
+
 document.body.addEventListener("keydown", function (key) {
   /* key listener for controls */
   if (!paused) {
